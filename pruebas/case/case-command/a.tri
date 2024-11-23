@@ -1,0 +1,10 @@
+let
+  var x: Integer
+in
+  case x of
+    1 : x := x + 1;
+    2 : x := x + 2;
+    'a' : x := x + 3;
+  else
+    x := 0
+  end

@@ -1,0 +1,6 @@
+let
+  var i: Integer
+in
+  repeat
+    i := i + 1
+  until i > 10

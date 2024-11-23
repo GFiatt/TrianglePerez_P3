@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Triangle1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/TrianglePerez/out/production/TrianglePerez/Triangle.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

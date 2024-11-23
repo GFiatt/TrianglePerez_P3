@@ -1,0 +1,7 @@
+let 
+  var i: Integer;
+  var a: Integer;
+  var j: Integer;
+  var x: Integer
+in
+  for j := a+2 to a-2 by -1 do x := x + j;
