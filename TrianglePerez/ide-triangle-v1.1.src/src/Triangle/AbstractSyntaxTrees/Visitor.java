@@ -43,6 +43,7 @@ public interface Visitor {
   public abstract Object visitUnaryExpression(UnaryExpression ast, Object o);
   public abstract Object visitVnameExpression(VnameExpression ast, Object o);
   public Object visitCaseExpression(CaseExpression ast, Object o);
+  public abstract Object visitMethodCallExpression(MethodCallExpression ast, Object o);
 
 
   // Declarations
