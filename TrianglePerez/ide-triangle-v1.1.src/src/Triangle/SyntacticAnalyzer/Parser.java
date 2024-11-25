@@ -517,7 +517,7 @@ public class Parser {
 
       case Token.CHARLITERAL:
       {
-        CharacterLiteral clAST= parseCharacterLiteral();
+        CharacterLiteral clAST = parseCharacterLiteral();
         finish(expressionPos);
         expressionAST = new CharacterExpression(clAST, expressionPos);
       }
@@ -545,14 +545,29 @@ public class Parser {
 
       case Token.IDENTIFIER:
       {
-        Identifier iAST= parseIdentifier();
-        if (currentToken.kind == Token.LPAREN) {
+        Identifier iAST = parseIdentifier();
+
+        // Handle potential method call or field access
+        if (currentToken.kind == Token.DOT) {
+          acceptIt(); // Accept the dot operator
+          Identifier methodId = parseIdentifier(); // Parse the method name
+
+          // Check for method arguments
+          ActualParameterSequence apsAST = null;
+          if (currentToken.kind == Token.LPAREN) {
+            acceptIt(); // Accept the opening parenthesis
+            apsAST = parseActualParameterSequence();
+            accept(Token.RPAREN); // Accept the closing parenthesis
+          }
+
+          finish(expressionPos);
+          expressionAST = new MethodCallExpression(iAST, methodId, apsAST, expressionPos);
+        } else if (currentToken.kind == Token.LPAREN) {
           acceptIt();
           ActualParameterSequence apsAST = parseActualParameterSequence();
           accept(Token.RPAREN);
           finish(expressionPos);
           expressionAST = new CallExpression(iAST, apsAST, expressionPos);
-
         } else {
           Vname vAST = parseRestOfVname(iAST);
           finish(expressionPos);
@@ -584,6 +599,7 @@ public class Parser {
     }
     return expressionAST;
   }
+
 
   RecordAggregate parseRecordAggregate() throws SyntaxError {
     RecordAggregate aggregateAST = null; // in case there's a syntactic error
