@@ -561,7 +561,9 @@ public class Parser {
           }
 
           finish(expressionPos);
-          expressionAST = new MethodCallExpression(iAST, methodId, apsAST, expressionPos);
+
+          Vname vAST = parseRestOfVname(iAST);
+          expressionAST = new MethodCallExpression(vAST, methodId, apsAST, expressionPos);
         } else if (currentToken.kind == Token.LPAREN) {
           acceptIt();
           ActualParameterSequence apsAST = parseActualParameterSequence();
