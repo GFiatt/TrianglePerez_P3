@@ -23,7 +23,9 @@ public class TreeVisitor implements Visitor {
      */
     public TreeVisitor() {
     }
-    
+
+
+
     // <editor-fold defaultstate="collapsed" desc=" Commands ">    
     // Commands  
     public Object visitAssignCommand(AssignCommand ast, Object o) {

@@ -25,6 +25,12 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public final class Checker implements Visitor {
 
+
+
+
+
+
+
   // Commands
 
   // Always returns null. Does not use the given object.
@@ -660,9 +666,22 @@ public final class Checker implements Visitor {
   }
 
   public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object o) {
-    ast.FT = (FieldTypeDenoter) ast.FT.visit(this, null);
-    return ast;
+    ast.FT.visit(this, o);
+
+    if (ast.functions != null) {
+      for (FuncDeclaration func : ast.functions) {
+        func.visit(this, null);
+      }
+    }
+
+    if (ast.procedures != null) {
+      for (ProcDeclaration proc : ast.procedures) {
+        proc.visit(this, null);
+      }
+    }
+    return null;
   }
+
 
   public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast, Object o) {
     ast.T = (TypeDenoter) ast.T.visit(this, null);

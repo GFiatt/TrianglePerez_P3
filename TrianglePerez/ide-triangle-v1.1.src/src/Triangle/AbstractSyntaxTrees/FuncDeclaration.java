@@ -18,9 +18,20 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class FuncDeclaration extends Declaration {
 
+  public RecordTypeDenoter parentRecord;
+
+  public FuncDeclaration(Identifier id, FormalParameterSequence fps, TypeDenoter td, Expression e, SourcePosition pos, RecordTypeDenoter record) {
+    super(pos);
+    this.I = id;
+    this.FPS = fps;
+    this.T = td;
+    this.E = e;
+    this.parentRecord = record;
+  }
+
   public FuncDeclaration (Identifier iAST, FormalParameterSequence fpsAST,
-  		   TypeDenoter tAST, Expression eAST,
-                   SourcePosition thePosition) {
+                          TypeDenoter tAST, Expression eAST,
+                          SourcePosition thePosition) {
     super (thePosition);
     I = iAST;
     FPS = fpsAST;

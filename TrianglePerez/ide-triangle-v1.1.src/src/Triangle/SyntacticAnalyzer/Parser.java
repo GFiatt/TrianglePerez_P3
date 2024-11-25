@@ -14,7 +14,9 @@
 
 package Triangle.SyntacticAnalyzer;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import Triangle.ErrorReporter;
 import Triangle.AbstractSyntaxTrees.*;
@@ -91,7 +93,7 @@ public class Parser {
       programAST = new Program(cAST, previousTokenPosition);
       if (currentToken.kind != Token.EOT) {
         syntacticError("\"%\" not expected after end of program",
-          currentToken.spelling);
+                currentToken.spelling);
       }
     }
     catch (SyntaxError s) { return null; }
@@ -209,7 +211,7 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.IDENTIFIER:
+      case Token.IDENTIFIER:
       {
         Identifier iAST = parseIdentifier();
         if (currentToken.kind == Token.LPAREN) {
@@ -230,13 +232,13 @@ public class Parser {
       }
       break;
 
-    case Token.BEGIN:
-      acceptIt();
-      commandAST = parseCommand();
-      accept(Token.END);
-      break;
+      case Token.BEGIN:
+        acceptIt();
+        commandAST = parseCommand();
+        accept(Token.END);
+        break;
 
-    case Token.LET:
+      case Token.LET:
       {
         acceptIt();
         Declaration dAST = parseDeclaration();
@@ -247,7 +249,7 @@ public class Parser {
       }
       break;
 
-    case Token.IF:
+      case Token.IF:
       {
         acceptIt();
         Expression eAST = parseExpression();
@@ -260,7 +262,7 @@ public class Parser {
       }
       break;
 
-    case Token.WHILE:
+      case Token.WHILE:
       {
         acceptIt();
         Expression eAST = parseExpression();
@@ -315,85 +317,85 @@ public class Parser {
         break;
 
 
-    case Token.DO:
-      acceptIt();
-      commandAST = parseSingleCommand();
-      accept(Token.WHILE);
-      Expression expressionAST = parseExpression();
-      commandAST = new DoCommand(commandAST, expressionAST, commandPos);
-      break;
-
-
-
-    case Token.CASE: {
-      acceptIt();
-      SourcePosition casePos = new SourcePosition();
-      start(casePos);
-
-      vAST = parseVname(); // Usamos Vname como lo especifica la tarea
-      accept(Token.OF);
-
-      LinkedHashMap<Object, Command> map = new LinkedHashMap<>();
-      while (currentToken.kind == Token.INTLITERAL || currentToken.kind == Token.CHARLITERAL) {
-        Object literal;
-        if (currentToken.kind == Token.INTLITERAL) {
-          literal = parseIntegerLiteral();
-        } else {
-          literal = parseCharacterLiteral();
-        }
-        accept(Token.COLON);
-        Command command = parseSingleCommand();
-        map.put(literal, command);
-
-        // Verificar si hay más casos
-        if (currentToken.kind == Token.SEMICOLON) {
-          acceptIt();
-        } else {
-          break;
-        }
-      }
-
-      Command elseCommand = null;
-      if (currentToken.kind == Token.ELSE) {
+      case Token.DO:
         acceptIt();
-        accept(Token.COLON);
-        elseCommand = parseSingleCommand();
+        commandAST = parseSingleCommand();
+        accept(Token.WHILE);
+        Expression expressionAST = parseExpression();
+        commandAST = new DoCommand(commandAST, expressionAST, commandPos);
+        break;
+
+
+
+      case Token.CASE: {
+        acceptIt();
+        SourcePosition casePos = new SourcePosition();
+        start(casePos);
+
+        vAST = parseVname(); // Usamos Vname como lo especifica la tarea
+        accept(Token.OF);
+
+        LinkedHashMap<Object, Command> map = new LinkedHashMap<>();
+        while (currentToken.kind == Token.INTLITERAL || currentToken.kind == Token.CHARLITERAL) {
+          Object literal;
+          if (currentToken.kind == Token.INTLITERAL) {
+            literal = parseIntegerLiteral();
+          } else {
+            literal = parseCharacterLiteral();
+          }
+          accept(Token.COLON);
+          Command command = parseSingleCommand();
+          map.put(literal, command);
+
+          // Verificar si hay más casos
+          if (currentToken.kind == Token.SEMICOLON) {
+            acceptIt();
+          } else {
+            break;
+          }
+        }
+
+        Command elseCommand = null;
+        if (currentToken.kind == Token.ELSE) {
+          acceptIt();
+          accept(Token.COLON);
+          elseCommand = parseSingleCommand();
+        }
+
+        accept(Token.END);
+        finish(casePos);
+
+        commandAST = new CaseCommand(vAST, map, elseCommand, casePos);
       }
-
-      accept(Token.END);
-      finish(casePos);
-
-      commandAST = new CaseCommand(vAST, map, elseCommand, casePos);
-    }
-    break;
+      break;
 
 
 
 
 
       case Token.REPEAT:
-      acceptIt();
-      Command repeatCommandAST = parseCommand();
-      accept(Token.UNTIL);
-      Expression repeatExpressionAST = parseExpression();
-      commandAST = new RepeatCommand(repeatCommandAST, repeatExpressionAST, commandPos);
-      break;
+        acceptIt();
+        Command repeatCommandAST = parseCommand();
+        accept(Token.UNTIL);
+        Expression repeatExpressionAST = parseExpression();
+        commandAST = new RepeatCommand(repeatCommandAST, repeatExpressionAST, commandPos);
+        break;
 
 
       case Token.SEMICOLON:
-    case Token.END:
-    case Token.ELSE:
-    case Token.IN:
-    case Token.EOT:
+      case Token.END:
+      case Token.ELSE:
+      case Token.IN:
+      case Token.EOT:
 
-      finish(commandPos);
-      commandAST = new EmptyCommand(commandPos);
-      break;
+        finish(commandPos);
+        commandAST = new EmptyCommand(commandPos);
+        break;
 
-    default:
-      syntacticError("\"%\" cannot start a command",
-        currentToken.spelling);
-      break;
+      default:
+        syntacticError("\"%\" cannot start a command",
+                currentToken.spelling);
+        break;
 
     }
 
@@ -415,7 +417,7 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.LET:
+      case Token.LET:
       {
         acceptIt();
         Declaration dAST = parseDeclaration();
@@ -426,7 +428,7 @@ public class Parser {
       }
       break;
 
-    case Token.IF:
+      case Token.IF:
       {
         acceptIt();
         Expression e1AST = parseExpression();
@@ -475,8 +477,8 @@ public class Parser {
 
 
       default:
-      expressionAST = parseSecondaryExpression();
-      break;
+        expressionAST = parseSecondaryExpression();
+        break;
     }
     return expressionAST;
   }
@@ -492,7 +494,7 @@ public class Parser {
       Operator opAST = parseOperator();
       Expression e2AST = parsePrimaryExpression();
       expressionAST = new BinaryExpression (expressionAST, opAST, e2AST,
-        expressionPos);
+              expressionPos);
     }
     return expressionAST;
   }
@@ -505,7 +507,7 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.INTLITERAL:
+      case Token.INTLITERAL:
       {
         IntegerLiteral ilAST = parseIntegerLiteral();
         finish(expressionPos);
@@ -513,7 +515,7 @@ public class Parser {
       }
       break;
 
-    case Token.CHARLITERAL:
+      case Token.CHARLITERAL:
       {
         CharacterLiteral clAST= parseCharacterLiteral();
         finish(expressionPos);
@@ -521,7 +523,7 @@ public class Parser {
       }
       break;
 
-    case Token.LBRACKET:
+      case Token.LBRACKET:
       {
         acceptIt();
         ArrayAggregate aaAST = parseArrayAggregate();
@@ -531,7 +533,7 @@ public class Parser {
       }
       break;
 
-    case Token.LCURLY:
+      case Token.LCURLY:
       {
         acceptIt();
         RecordAggregate raAST = parseRecordAggregate();
@@ -541,7 +543,7 @@ public class Parser {
       }
       break;
 
-    case Token.IDENTIFIER:
+      case Token.IDENTIFIER:
       {
         Identifier iAST= parseIdentifier();
         if (currentToken.kind == Token.LPAREN) {
@@ -559,7 +561,7 @@ public class Parser {
       }
       break;
 
-    case Token.OPERATOR:
+      case Token.OPERATOR:
       {
         Operator opAST = parseOperator();
         Expression eAST = parsePrimaryExpression();
@@ -568,16 +570,16 @@ public class Parser {
       }
       break;
 
-    case Token.LPAREN:
-      acceptIt();
-      expressionAST = parseExpression();
-      accept(Token.RPAREN);
-      break;
+      case Token.LPAREN:
+        acceptIt();
+        expressionAST = parseExpression();
+        accept(Token.RPAREN);
+        break;
 
-    default:
-      syntacticError("\"%\" cannot start an expression",
-        currentToken.spelling);
-      break;
+      default:
+        syntacticError("\"%\" cannot start an expression",
+                currentToken.spelling);
+        break;
 
     }
     return expressionAST;
@@ -643,7 +645,7 @@ public class Parser {
     Vname vAST = new SimpleVname(identifierAST, vnamePos);
 
     while (currentToken.kind == Token.DOT ||
-           currentToken.kind == Token.LBRACKET) {
+            currentToken.kind == Token.LBRACKET) {
 
       if (currentToken.kind == Token.DOT) {
         acceptIt();
@@ -659,6 +661,7 @@ public class Parser {
     }
     return vAST;
   }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -677,7 +680,7 @@ public class Parser {
       Declaration d2AST = parseSingleDeclaration();
       finish(declarationPos);
       declarationAST = new SequentialDeclaration(declarationAST, d2AST,
-        declarationPos);
+              declarationPos);
     }
     return declarationAST;
   }
@@ -690,7 +693,7 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.CONST:
+      case Token.CONST:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -701,7 +704,7 @@ public class Parser {
       }
       break;
 
-    case Token.VAR:
+      case Token.VAR:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -712,7 +715,7 @@ public class Parser {
       }
       break;
 
-    case Token.PROC:
+      case Token.PROC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -726,7 +729,7 @@ public class Parser {
       }
       break;
 
-    case Token.FUNC:
+      case Token.FUNC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -739,11 +742,11 @@ public class Parser {
         Expression eAST = parseExpression();
         finish(declarationPos);
         declarationAST = new FuncDeclaration(iAST, fpsAST, tAST, eAST,
-          declarationPos);
+                declarationPos);
       }
       break;
 
-    case Token.TYPE:
+      case Token.TYPE:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -754,10 +757,10 @@ public class Parser {
       }
       break;
 
-    default:
-      syntacticError("\"%\" cannot start a declaration",
-        currentToken.spelling);
-      break;
+      default:
+        syntacticError("\"%\" cannot start a declaration",
+                currentToken.spelling);
+        break;
 
     }
     return declarationAST;
@@ -796,7 +799,7 @@ public class Parser {
       FormalParameterSequence fpsAST = parseProperFormalParameterSequence();
       finish(formalsPos);
       formalsAST = new MultipleFormalParameterSequence(fpAST, fpsAST,
-        formalsPos);
+              formalsPos);
 
     } else {
       finish(formalsPos);
@@ -813,7 +816,7 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.IDENTIFIER:
+      case Token.IDENTIFIER:
       {
         Identifier iAST = parseIdentifier();
         accept(Token.COLON);
@@ -823,7 +826,7 @@ public class Parser {
       }
       break;
 
-    case Token.VAR:
+      case Token.VAR:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -834,7 +837,7 @@ public class Parser {
       }
       break;
 
-    case Token.PROC:
+      case Token.PROC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -846,7 +849,7 @@ public class Parser {
       }
       break;
 
-    case Token.FUNC:
+      case Token.FUNC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -860,10 +863,10 @@ public class Parser {
       }
       break;
 
-    default:
-      syntacticError("\"%\" cannot start a formal parameter",
-        currentToken.spelling);
-      break;
+      default:
+        syntacticError("\"%\" cannot start a formal parameter",
+                currentToken.spelling);
+        break;
 
     }
     return formalAST;
@@ -898,7 +901,7 @@ public class Parser {
       ActualParameterSequence apsAST = parseProperActualParameterSequence();
       finish(actualsPos);
       actualsAST = new MultipleActualParameterSequence(apAST, apsAST,
-        actualsPos);
+              actualsPos);
     } else {
       finish(actualsPos);
       actualsAST = new SingleActualParameterSequence(apAST, actualsPos);
@@ -915,15 +918,15 @@ public class Parser {
 
     switch (currentToken.kind) {
 
-    case Token.IDENTIFIER:
-    case Token.INTLITERAL:
-    case Token.CHARLITERAL:
-    case Token.OPERATOR:
-    case Token.LET:
-    case Token.IF:
-    case Token.LPAREN:
-    case Token.LBRACKET:
-    case Token.LCURLY:
+      case Token.IDENTIFIER:
+      case Token.INTLITERAL:
+      case Token.CHARLITERAL:
+      case Token.OPERATOR:
+      case Token.LET:
+      case Token.IF:
+      case Token.LPAREN:
+      case Token.LBRACKET:
+      case Token.LCURLY:
       {
         Expression eAST = parseExpression();
         finish(actualPos);
@@ -931,7 +934,7 @@ public class Parser {
       }
       break;
 
-    case Token.VAR:
+      case Token.VAR:
       {
         acceptIt();
         Vname vAST = parseVname();
@@ -940,7 +943,7 @@ public class Parser {
       }
       break;
 
-    case Token.PROC:
+      case Token.PROC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -949,7 +952,7 @@ public class Parser {
       }
       break;
 
-    case Token.FUNC:
+      case Token.FUNC:
       {
         acceptIt();
         Identifier iAST = parseIdentifier();
@@ -958,10 +961,10 @@ public class Parser {
       }
       break;
 
-    default:
-      syntacticError("\"%\" cannot start an actual parameter",
-        currentToken.spelling);
-      break;
+      default:
+        syntacticError("\"%\" cannot start an actual parameter",
+                currentToken.spelling);
+        break;
 
     }
     return actualAST;
@@ -973,6 +976,40 @@ public class Parser {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+  private FuncDeclaration parseFuncFieldDeclaration(Identifier id) throws SyntaxError {
+    SourcePosition funcPos = new SourcePosition();
+    start(funcPos);
+
+    accept(Token.LPAREN);
+    FormalParameterSequence fps = parseFormalParameterSequence();
+    accept(Token.RPAREN);
+    accept(Token.COLON);
+    TypeDenoter td = parseTypeDenoter();
+    accept(Token.IS);
+    Expression e = parseExpression();
+
+    finish(funcPos);
+    return new FuncDeclaration(id, fps, td, e, funcPos, null);
+  }
+
+
+  private ProcDeclaration parseProcFieldDeclaration(Identifier id) throws SyntaxError {
+    SourcePosition procPos = new SourcePosition();
+    start(procPos);
+
+    accept(Token.LPAREN);
+    FormalParameterSequence fps = parseFormalParameterSequence();
+    accept(Token.RPAREN);
+    accept(Token.IS);
+    Command c = parseSingleCommand();
+
+    finish(procPos);
+    return new ProcDeclaration(id, fps, c, procPos, null);
+  }
+
+
+
+
   TypeDenoter parseTypeDenoter() throws SyntaxError {
     TypeDenoter typeAST = null; // in case there's a syntactic error
     SourcePosition typePos = new SourcePosition();
@@ -980,17 +1017,14 @@ public class Parser {
     start(typePos);
 
     switch (currentToken.kind) {
-
-    case Token.IDENTIFIER:
-      {
+      case Token.IDENTIFIER: {
         Identifier iAST = parseIdentifier();
         finish(typePos);
         typeAST = new SimpleTypeDenoter(iAST, typePos);
       }
       break;
 
-    case Token.ARRAY:
-      {
+      case Token.ARRAY: {
         acceptIt();
         IntegerLiteral ilAST = parseIntegerLiteral();
         accept(Token.OF);
@@ -1000,28 +1034,70 @@ public class Parser {
       }
       break;
 
-    case Token.RECORD:
-      {
-        acceptIt();
-        FieldTypeDenoter fAST = parseFieldTypeDenoter();
-        accept(Token.END);
+      case Token.RECORD: {
+        acceptIt(); // Aceptar "record"
+
+        FieldTypeDenoter fAST = null;
+        List<FuncDeclaration> funcList = new ArrayList<>();
+        List<ProcDeclaration> procList = new ArrayList<>();
+
+        while (currentToken.kind != Token.END) {
+          if (currentToken.kind == Token.IDENTIFIER) {
+            Identifier id = parseIdentifier();
+            accept(Token.COLON);
+
+            if (currentToken.kind == Token.FUNC) {
+              acceptIt();
+              FuncDeclaration funcDecl = parseFuncFieldDeclaration(id);
+              funcList.add(funcDecl);
+              accept(Token.SEMICOLON);
+            } else if (currentToken.kind == Token.PROC) {
+              acceptIt();
+              ProcDeclaration procDecl = parseProcFieldDeclaration(id);
+              procList.add(procDecl);
+              accept(Token.SEMICOLON);
+            } else {
+              TypeDenoter tAST = parseTypeDenoter();
+              if (fAST == null) {
+                fAST = new SingleFieldTypeDenoter(id, tAST, currentToken.position);
+              } else {
+                fAST = new MultipleFieldTypeDenoter(id, tAST, fAST, currentToken.position);
+              }
+              accept(Token.SEMICOLON);
+            }
+          } else {
+            syntacticError("Identifier expected", "");
+          }
+        }
+
+        accept(Token.END); // Aceptar "end" al final del record
         finish(typePos);
-        typeAST = new RecordTypeDenoter(fAST, typePos);
+        typeAST = new RecordTypeDenoter(fAST, funcList, procList, typePos);
       }
       break;
 
-    default:
-      syntacticError("\"%\" cannot start a type denoter",
-        currentToken.spelling);
-      break;
 
+
+
+
+
+
+
+
+
+
+      default:
+        syntacticError("\"%\" cannot start a type denoter",
+                currentToken.spelling);
+        break;
     }
+
     return typeAST;
   }
 
+
   FieldTypeDenoter parseFieldTypeDenoter() throws SyntaxError {
     FieldTypeDenoter fieldAST = null; // in case there's a syntactic error
-
     SourcePosition fieldPos = new SourcePosition();
 
     start(fieldPos);
@@ -1037,6 +1113,8 @@ public class Parser {
       finish(fieldPos);
       fieldAST = new SingleFieldTypeDenoter(iAST, tAST, fieldPos);
     }
+
     return fieldAST;
   }
+
 }

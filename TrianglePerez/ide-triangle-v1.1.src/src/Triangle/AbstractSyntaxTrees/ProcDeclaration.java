@@ -18,8 +18,18 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class ProcDeclaration extends Declaration {
 
+  public RecordTypeDenoter parentRecord;
+
+  public ProcDeclaration(Identifier id, FormalParameterSequence fps, Command c, SourcePosition pos, RecordTypeDenoter record) {
+    super(pos);
+    this.I = id;
+    this.FPS = fps;
+    this.C = c;
+    this.parentRecord = record;
+  }
+
   public ProcDeclaration (Identifier iAST, FormalParameterSequence fpsAST,
-  		   Command cAST, SourcePosition thePosition) {
+                          Command cAST, SourcePosition thePosition) {
     super (thePosition);
     I = iAST;
     FPS = fpsAST;
