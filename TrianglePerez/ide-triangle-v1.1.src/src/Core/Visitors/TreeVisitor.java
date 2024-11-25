@@ -144,6 +144,16 @@ public class TreeVisitor implements Visitor {
         return t;
     }
 
+    @Override
+    public Object visitMethodCallExpression(MethodCallExpression ast, Object obj) {
+        ast.recordVname.visit(this, null);
+        ast.methodName.visit(this, null);
+        if (ast.parameterSequence != null) {
+            ast.parameterSequence.visit(this, null);
+        }
+        return null;
+    }
+
 
 
 

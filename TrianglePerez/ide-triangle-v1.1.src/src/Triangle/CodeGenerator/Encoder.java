@@ -226,6 +226,15 @@ public final class Encoder implements Visitor {
     return valSize;
   }
 
+  @Override
+  public Object visitMethodCallExpression(MethodCallExpression ast, Object o) {
+    Frame frame = (Frame) o;
+    ast.parameterSequence.visit(this, frame);
+    ast.recordVname.visit(this, frame);
+    emit(Machine.CALLop, Machine.SBr, Machine.CBr, 0);
+    return null;
+  }
+
   public Object visitCharacterExpression(CharacterExpression ast,
                                          Object o) {
     Frame frame = (Frame) o;

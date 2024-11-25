@@ -140,7 +140,25 @@ public class LayoutVisitor implements Visitor {
     return t;
   }
 
+  @Override
+  public Object visitMethodCallExpression(MethodCallExpression ast, Object obj) {
+    DrawingTree t = layoutCaption("MethodCallExpr");
 
+    DrawingTree recordTree = (DrawingTree) ast.recordVname.visit(this, null);
+    t.setChildren(new DrawingTree[]{recordTree});
+
+    DrawingTree methodNameTree = layoutCaption(ast.methodName.spelling);
+    t.setChildren(new DrawingTree[]{methodNameTree});
+
+    if (ast.parameterSequence != null) {
+      DrawingTree paramsTree = (DrawingTree) ast.parameterSequence.visit(this, null);
+      t.setChildren(new DrawingTree[]{recordTree, methodNameTree, paramsTree});
+    } else {
+      t.setChildren(new DrawingTree[]{recordTree, methodNameTree});
+    }
+
+    return t;
+  }
 
 
   // Declarations
