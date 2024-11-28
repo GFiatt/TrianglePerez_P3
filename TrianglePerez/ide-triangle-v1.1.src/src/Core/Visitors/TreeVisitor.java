@@ -9,13 +9,14 @@ import Triangle.AbstractSyntaxTrees.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Map;
 
+
 /**
  * Implements the Triangle Visitor interface, which is used to
  * visit an entire AST.
  * <p>
  * Generates DefaultMutableTreeNodes, used to draw a JTree.
  *
- * @author Luis Leopoldo Pérez
+ * @author Luis Leopoldo P�rez <luiperpe@ns.isi.ulatina.ac.cr>
  */
 public class TreeVisitor implements Visitor {
 
@@ -25,7 +26,9 @@ public class TreeVisitor implements Visitor {
     public TreeVisitor() {
     }
 
+
     // <editor-fold defaultstate="collapsed" desc=" Commands ">
+    // Commands  
     public Object visitAssignCommand(AssignCommand ast, Object o) {
         return (createBinary("Assign Command", ast.V, ast.E));
     }
@@ -43,9 +46,6 @@ public class TreeVisitor implements Visitor {
     }
 
     public Object visitLetCommand(LetCommand ast, Object obj) {
-        if (ast.D == null || ast.C == null) {
-            throw new IllegalArgumentException("Error: LetCommand contiene nodos nulos.");
-        }
         return (createBinary("Let Command", ast.D, ast.C));
     }
 
@@ -57,357 +57,359 @@ public class TreeVisitor implements Visitor {
         return (createBinary("While Command", ast.E, ast.C));
     }
 
-    public Object visitRepeatCommand(RepeatCommand ast, Object o) {
-        if (ast.C == null || ast.E == null) {
-            throw new IllegalArgumentException("Error: RepeatCommand contiene nodos nulos.");
-        }
-        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) o;
-        DefaultMutableTreeNode repeatNode = new DefaultMutableTreeNode("Repeat Command");
-        parent.add(repeatNode);
-        repeatNode.add((DefaultMutableTreeNode) ast.C.visit(this, null));
-        repeatNode.add((DefaultMutableTreeNode) ast.E.visit(this, null));
-        return null;
-    }
-
     @Override
-    public Object visitArrayExpression(ArrayExpression ast, Object o) {
-        return createUnary("Array Expression", ast.AA);
-    }
-
-
     public Object visitForCommand(ForCommand ast, Object o) {
         DefaultMutableTreeNode forNode = new DefaultMutableTreeNode("For Command");
 
-        // Visit variable
+        // Visit and add variable name
         DefaultMutableTreeNode varNode = (DefaultMutableTreeNode) ast.V.visit(this, null);
         if (varNode != null) {
             forNode.add(varNode);
         }
 
-        // Visit start expression
-        DefaultMutableTreeNode startNode = (DefaultMutableTreeNode) ast.E1.visit(this, null);
-        if (startNode != null) {
-            DefaultMutableTreeNode startLabel = new DefaultMutableTreeNode("Start:");
-            startLabel.add(startNode);
-            forNode.add(startLabel);
+        // Visit and add start expression
+        DefaultMutableTreeNode startExprNode = (DefaultMutableTreeNode) ast.E1.visit(this, null);
+        if (startExprNode != null) {
+            DefaultMutableTreeNode startLabelNode = new DefaultMutableTreeNode("Start: ");
+            startLabelNode.add(startExprNode);
+            forNode.add(startLabelNode);
         }
 
-        // Visit end expression
-        DefaultMutableTreeNode endNode = (DefaultMutableTreeNode) ast.E2.visit(this, null);
-        if (endNode != null) {
-            DefaultMutableTreeNode endLabel = new DefaultMutableTreeNode("End:");
-            endLabel.add(endNode);
-            forNode.add(endLabel);
+        // Visit and add end expression
+        DefaultMutableTreeNode endExprNode = (DefaultMutableTreeNode) ast.E2.visit(this, null);
+        if (endExprNode != null) {
+            DefaultMutableTreeNode endLabelNode = new DefaultMutableTreeNode("End: ");
+            endLabelNode.add(endExprNode);
+            forNode.add(endLabelNode);
         }
 
-        // Visit step expression (if exists)
+        // Check if the step expression is not null and visit if not
         if (ast.E3 != null) {
-            DefaultMutableTreeNode stepNode = (DefaultMutableTreeNode) ast.E3.visit(this, null);
-            if (stepNode != null) {
-                DefaultMutableTreeNode stepLabel = new DefaultMutableTreeNode("Step:");
-                stepLabel.add(stepNode);
-                forNode.add(stepLabel);
+            DefaultMutableTreeNode stepExprNode = (DefaultMutableTreeNode) ast.E3.visit(this, null);
+            if (stepExprNode != null) {
+                DefaultMutableTreeNode stepLabelNode = new DefaultMutableTreeNode("Step: ");
+                stepLabelNode.add(stepExprNode);
+                forNode.add(stepLabelNode);
             }
         } else {
-            DefaultMutableTreeNode stepLabel = new DefaultMutableTreeNode("Step: default +1");
-            forNode.add(stepLabel);
+            // If E3 is null, create a default step of +1
+            DefaultMutableTreeNode stepLabelNode = new DefaultMutableTreeNode("Step: default +1");
+            forNode.add(stepLabelNode);
         }
 
-        // Visit body command
+        // Visit and add the body command
         DefaultMutableTreeNode bodyNode = (DefaultMutableTreeNode) ast.C.visit(this, null);
         if (bodyNode != null) {
-            DefaultMutableTreeNode bodyLabel = new DefaultMutableTreeNode("Do:");
-            bodyLabel.add(bodyNode);
-            forNode.add(bodyLabel);
+            DefaultMutableTreeNode bodyLabelNode = new DefaultMutableTreeNode("Do: ");
+            bodyLabelNode.add(bodyNode);
+            forNode.add(bodyLabelNode);
         }
 
         return forNode;
     }
 
+
+
     // </editor-fold>
+
+    public Object visitRepeatCommand(RepeatCommand ast, Object o) {
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) o;
+        DefaultMutableTreeNode repeatNode = new DefaultMutableTreeNode("Repeat Command");
+        parent.add(repeatNode);
+        ast.C.visit(this, repeatNode);
+        ast.E.visit(this, repeatNode);
+        return null;
+    }
+
     @Override
     public Object visitDoCommand(DoCommand ast, Object o) {
-        return null; // Método vacío, sin procesamiento
+        // Crear el nodo para el comando "do-while"
+        return createBinary("DoCommand", ast.C, ast.E);
     }
 
 
-
     // <editor-fold defaultstate="collapsed" desc=" Expressions ">
+    // Expressions
+    public Object visitArrayExpression(ArrayExpression ast, Object obj) {
+        return (createUnary("Array Expression", ast.AA));
+    }
+
     public Object visitBinaryExpression(BinaryExpression ast, Object obj) {
         return (createTernary("Binary Expression", ast.E1, ast.O, ast.E2));
     }
 
-    @Override
-    public Object visitCallExpression(CallExpression ast, Object o) {
-        return null;
+    public Object visitCallExpression(CallExpression ast, Object obj) {
+        return (createBinary("Call Expression", ast.I, ast.APS));
     }
 
     @Override
-    public Object visitCaseCommand(CaseCommand caseCommand, Object o) {
-        return null;
+    public Object visitCaseCommand(CaseCommand ast, Object o) {
+        DefaultMutableTreeNode caseNode = new DefaultMutableTreeNode("Case Command");
+        DefaultMutableTreeNode conditionNode = (DefaultMutableTreeNode)ast.V.visit(this, null);
+        if (conditionNode != null) {
+            caseNode.add(conditionNode);
+        }
+
+        for (Map.Entry<Object, Command> entry : ast.MAP.entrySet()) {
+            Object key = entry.getKey();
+            Command command = entry.getValue();
+            DefaultMutableTreeNode commandNode = (DefaultMutableTreeNode)command.visit(this, null);
+            if (commandNode != null) {
+                DefaultMutableTreeNode caseBranchNode = new DefaultMutableTreeNode(key.toString() + ":");
+                caseBranchNode.add(commandNode);
+                caseNode.add(caseBranchNode);
+            }
+        }
+
+        DefaultMutableTreeNode elseNode = (DefaultMutableTreeNode)ast.C.visit(this, null);
+        if (elseNode != null) {
+            DefaultMutableTreeNode elseBranchNode = new DefaultMutableTreeNode("Else:");
+            elseBranchNode.add(elseNode);
+            caseNode.add(elseBranchNode);
+        }
+
+        return caseNode;
     }
 
-    @Override
-    public Object visitCharacterExpression(CharacterExpression ast, Object o) {
-        return null;
+    public Object visitCharacterExpression(CharacterExpression ast, Object obj) {
+        return (createUnary("Character Expression", ast.CL));
     }
 
-    @Override
-    public Object visitEmptyExpression(EmptyExpression ast, Object o) {
-        return null;
+    public Object visitEmptyExpression(EmptyExpression ast, Object obj) {
+        return (createNullary("Empty Expression"));
     }
 
-    @Override
-    public Object visitIfExpression(IfExpression ast, Object o) {
-        return null;
+    public Object visitIfExpression(IfExpression ast, Object obj) {
+        return (createTernary("If Expression", ast.E1, ast.E2, ast.E3));
     }
 
     public Object visitIntegerExpression(IntegerExpression ast, Object obj) {
         return (createUnary("Integer Expression", ast.IL));
     }
 
-    @Override
-    public Object visitLetExpression(LetExpression ast, Object o) {
-        return null;
+    public Object visitLetExpression(LetExpression ast, Object obj) {
+        return (createBinary("Let Expression", ast.D, ast.E));
     }
 
-    @Override
-    public Object visitRecordExpression(RecordExpression ast, Object o) {
-        return null;
+    public Object visitRecordExpression(RecordExpression ast, Object obj) {
+        return (createUnary("Record Expression", ast.RA));
     }
 
-    @Override
-    public Object visitUnaryExpression(UnaryExpression ast, Object o) {
-        return null;
+    public Object visitUnaryExpression(UnaryExpression ast, Object obj) {
+        return (createBinary("Unary Expression", ast.O, ast.E));
     }
 
     public Object visitVnameExpression(VnameExpression ast, Object obj) {
         return (createUnary("Vname Expression", ast.V));
     }
+    // </editor-fold>
 
-    @Override
     public Object visitCaseExpression(CaseExpression ast, Object o) {
-        return null;
+        DefaultMutableTreeNode t = createUnary("CaseExpression", ast.V);
+
+        for (Object literal : ast.MAP.keySet()) {
+            DefaultMutableTreeNode caseNode = new DefaultMutableTreeNode(literal.toString() + " :");
+            caseNode.add((DefaultMutableTreeNode) ast.MAP.get(literal).visit(this, null));
+            t.add(caseNode);
+        }
+
+        return t;
     }
 
-    @Override
-    public Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast, Object o) {
-        return null;
+
+    // <editor-fold defaultstate="collapsed" desc=" Declarations ">
+    // Declarations
+    public Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast, Object obj) {
+        return (createQuaternary("Binary Operator Declaration", ast.O, ast.ARG1, ast.ARG2, ast.RES));
     }
 
-    @Override
-    public Object visitConstDeclaration(ConstDeclaration ast, Object o) {
-        return null;
+    public Object visitConstDeclaration(ConstDeclaration ast, Object obj) {
+        return (createBinary("Constant Declaration", ast.I, ast.E));
     }
 
-    @Override
-    public Object visitFuncDeclaration(FuncDeclaration ast, Object o) {
-        return null;
+    public Object visitFuncDeclaration(FuncDeclaration ast, Object obj) {
+        return (createQuaternary("Function Declaration", ast.I, ast.FPS, ast.T, ast.E));
     }
 
-    @Override
-    public Object visitProcDeclaration(ProcDeclaration ast, Object o) {
-        return null;
+    public Object visitProcDeclaration(ProcDeclaration ast, Object obj) {
+        return (createTernary("Procedure Declaration", ast.I, ast.FPS, ast.C));
     }
 
-    @Override
-    public Object visitSequentialDeclaration(SequentialDeclaration ast, Object o) {
-        return null;
+    public Object visitSequentialDeclaration(SequentialDeclaration ast, Object obj) {
+        return (createBinary("Sequential Declaration", ast.D1, ast.D2));
     }
 
-    @Override
-    public Object visitTypeDeclaration(TypeDeclaration ast, Object o) {
-        return null;
+    public Object visitTypeDeclaration(TypeDeclaration ast, Object obj) {
+        return (createBinary("Type Declaration", ast.I, ast.T));
     }
 
-    @Override
-    public Object visitUnaryOperatorDeclaration(UnaryOperatorDeclaration ast, Object o) {
-        return null;
+    public Object visitUnaryOperatorDeclaration(UnaryOperatorDeclaration ast, Object obj) {
+        return (createTernary("Unary Operator Declaration", ast.O, ast.ARG, ast.RES));
     }
 
-    @Override
-    public Object visitVarDeclaration(VarDeclaration ast, Object o) {
-        return null;
+    public Object visitVarDeclaration(VarDeclaration ast, Object obj) {
+        return (createBinary("Variable Declaration", ast.I, ast.T));
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Aggregates ">
+    // Array Aggregates
+    public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast, Object obj) {
+        return (createBinary("Multiple Array Aggregate", ast.E, ast.AA));
     }
 
-    @Override
-    public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast, Object o) {
-        return null;
+    public Object visitSingleArrayAggregate(SingleArrayAggregate ast, Object obj) {
+        return (createUnary("Single Array Aggregate", ast.E));
     }
 
-    @Override
-    public Object visitSingleArrayAggregate(SingleArrayAggregate ast, Object o) {
-        return null;
+    // Record Aggregates
+    public Object visitMultipleRecordAggregate(MultipleRecordAggregate ast, Object obj) {
+        return (createTernary("Multiple Record Aggregate", ast.I, ast.E, ast.RA));
     }
 
-    @Override
-    public Object visitMultipleRecordAggregate(MultipleRecordAggregate ast, Object o) {
-        return null;
+    public Object visitSingleRecordAggregate(SingleRecordAggregate ast, Object obj) {
+        return (createBinary("Single Record Aggregate", ast.I, ast.E));
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Parameters ">
+    // Formal Parameters   
+    public Object visitConstFormalParameter(ConstFormalParameter ast, Object obj) {
+        return (createBinary("Constant Formal Parameter", ast.I, ast.T));
     }
 
-    @Override
-    public Object visitSingleRecordAggregate(SingleRecordAggregate ast, Object o) {
-        return null;
+    public Object visitFuncFormalParameter(FuncFormalParameter ast, Object obj) {
+        return (createTernary("Function Formal Parameter", ast.I, ast.FPS, ast.T));
     }
 
-    @Override
-    public Object visitConstFormalParameter(ConstFormalParameter ast, Object o) {
-        return null;
+    public Object visitProcFormalParameter(ProcFormalParameter ast, Object obj) {
+        return (createBinary("Procedure Formal Parameter", ast.I, ast.FPS));
     }
 
-    @Override
-    public Object visitFuncFormalParameter(FuncFormalParameter ast, Object o) {
-        return null;
+    public Object visitVarFormalParameter(VarFormalParameter ast, Object obj) {
+        return (createBinary("Variable Formal Parameter", ast.I, ast.T));
     }
 
-    @Override
-    public Object visitProcFormalParameter(ProcFormalParameter ast, Object o) {
-        return null;
+    public Object visitEmptyFormalParameterSequence(EmptyFormalParameterSequence ast, Object obj) {
+        return (createNullary("Empty Formal Parameter Sequence"));
     }
 
-    @Override
-    public Object visitVarFormalParameter(VarFormalParameter ast, Object o) {
-        return null;
+    public Object visitMultipleFormalParameterSequence(MultipleFormalParameterSequence ast, Object obj) {
+        return (createBinary("Multiple Formal Parameter Sequence", ast.FP, ast.FPS));
     }
 
-    @Override
-    public Object visitEmptyFormalParameterSequence(EmptyFormalParameterSequence ast, Object o) {
-        return null;
+    public Object visitSingleFormalParameterSequence(SingleFormalParameterSequence ast, Object obj) {
+        return (createUnary("Single Formal Parameter Sequence", ast.FP));
     }
 
-    @Override
-    public Object visitMultipleFormalParameterSequence(MultipleFormalParameterSequence ast, Object o) {
-        return null;
+    // Actual Parameters
+    public Object visitConstActualParameter(ConstActualParameter ast, Object obj) {
+        return (createUnary("Constant Actual Parameter", ast.E));
     }
 
-    @Override
-    public Object visitSingleFormalParameterSequence(SingleFormalParameterSequence ast, Object o) {
-        return null;
+    public Object visitFuncActualParameter(FuncActualParameter ast, Object obj) {
+        return (createUnary("Function Actual Parameter", ast.I));
     }
 
-    @Override
-    public Object visitConstActualParameter(ConstActualParameter ast, Object o) {
-        return null;
+    public Object visitProcActualParameter(ProcActualParameter ast, Object obj) {
+        return (createUnary("Procedure Actual Parameter", ast.I));
     }
 
-    @Override
-    public Object visitFuncActualParameter(FuncActualParameter ast, Object o) {
-        return null;
+    public Object visitVarActualParameter(VarActualParameter ast, Object obj) {
+        return (createUnary("Variable Actual Parameter", ast.V));
     }
 
-    @Override
-    public Object visitProcActualParameter(ProcActualParameter ast, Object o) {
-        return null;
+    public Object visitEmptyActualParameterSequence(EmptyActualParameterSequence ast, Object obj) {
+        return (createNullary("Empty Actual Parameter Sequence"));
     }
 
-    @Override
-    public Object visitVarActualParameter(VarActualParameter ast, Object o) {
-        return null;
+    public Object visitMultipleActualParameterSequence(MultipleActualParameterSequence ast, Object obj) {
+        return (createBinary("Multiple Actual Parameter Sequence", ast.AP, ast.APS));
     }
 
-    @Override
-    public Object visitEmptyActualParameterSequence(EmptyActualParameterSequence ast, Object o) {
-        return null;
+    public Object visitSingleActualParameterSequence(SingleActualParameterSequence ast, Object obj) {
+        return (createUnary("Single Actual Parameter Sequence", ast.AP));
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Type Denoters ">
+    // Type Denoters
+    public Object visitAnyTypeDenoter(AnyTypeDenoter ast, Object obj) {
+        return (createNullary("any"));
     }
 
-    @Override
-    public Object visitMultipleActualParameterSequence(MultipleActualParameterSequence ast, Object o) {
-        return null;
+    public Object visitArrayTypeDenoter(ArrayTypeDenoter ast, Object obj) {
+        return (createBinary("Array Type Denoter", ast.IL, ast.T));
     }
 
-    @Override
-    public Object visitSingleActualParameterSequence(SingleActualParameterSequence ast, Object o) {
-        return null;
+    public Object visitBoolTypeDenoter(BoolTypeDenoter ast, Object obj) {
+        return (createNullary("bool"));
     }
 
-    @Override
-    public Object visitAnyTypeDenoter(AnyTypeDenoter ast, Object o) {
-        return null;
+    public Object visitCharTypeDenoter(CharTypeDenoter ast, Object obj) {
+        return (createNullary("char"));
     }
 
-    @Override
-    public Object visitArrayTypeDenoter(ArrayTypeDenoter ast, Object o) {
-        return null;
+    public Object visitErrorTypeDenoter(ErrorTypeDenoter ast, Object obj) {
+        return (createNullary("error"));
     }
 
-    @Override
-    public Object visitBoolTypeDenoter(BoolTypeDenoter ast, Object o) {
-        return null;
+    public Object visitSimpleTypeDenoter(SimpleTypeDenoter ast, Object obj) {
+        return (createUnary("Simple Type Denoter", ast.I));
     }
 
-    @Override
-    public Object visitCharTypeDenoter(CharTypeDenoter ast, Object o) {
-        return null;
+    public Object visitIntTypeDenoter(IntTypeDenoter ast, Object obj) {
+        return (createNullary("int"));
     }
 
-    @Override
-    public Object visitErrorTypeDenoter(ErrorTypeDenoter ast, Object o) {
-        return null;
+    public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object obj) {
+        return (createUnary("Record Type Denoter", ast.FT));
     }
 
-    @Override
-    public Object visitSimpleTypeDenoter(SimpleTypeDenoter ast, Object o) {
-        return null;
+    public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast, Object obj) {
+        return (createTernary("Multiple Field Type Denoter", ast.I, ast.T, ast.FT));
     }
 
-    @Override
-    public Object visitIntTypeDenoter(IntTypeDenoter ast, Object o) {
-        return null;
+    public Object visitSingleFieldTypeDenoter(SingleFieldTypeDenoter ast, Object obj) {
+        return (createBinary("Single Field Type Denoter", ast.I, ast.T));
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Literals, Identifiers and Operators ">
+    // Literals, Identifiers and Operators
+    public Object visitCharacterLiteral(CharacterLiteral ast, Object obj) {
+        return (createNullary(ast.spelling));
     }
 
-    @Override
-    public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object o) {
-        return null;
+    public Object visitIdentifier(Identifier ast, Object obj) {
+        return (createNullary(ast.spelling));
     }
 
-    @Override
-    public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast, Object o) {
-        return null;
+    public Object visitIntegerLiteral(IntegerLiteral ast, Object obj) {
+        return (createNullary(ast.spelling));
     }
 
-    @Override
-    public Object visitSingleFieldTypeDenoter(SingleFieldTypeDenoter ast, Object o) {
-        return null;
+    public Object visitOperator(Operator ast, Object obj) {
+        return (createNullary(ast.spelling));
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Values or Variable Names ">
+    // Values or Variable Names
+    public Object visitDotVname(DotVname ast, Object obj) {
+        return (createBinary("Dot Vname", ast.I, ast.V));
     }
 
-    @Override
-    public Object visitCharacterLiteral(CharacterLiteral ast, Object o) {
-        return null;
+    public Object visitSimpleVname(SimpleVname ast, Object obj) {
+        return (createUnary("Simple Vname", ast.I));
     }
 
-    @Override
-    public Object visitIdentifier(Identifier ast, Object o) {
-        return null;
+    public Object visitSubscriptVname(SubscriptVname ast, Object obj) {
+        return (createBinary("Subscript Vname", ast.V, ast.E));
     }
 
-    @Override
-    public Object visitIntegerLiteral(IntegerLiteral ast, Object o) {
-        return null;
-    }
-
-    @Override
-    public Object visitOperator(Operator ast, Object o) {
-        return null;
-    }
-
-    @Override
-    public Object visitDotVname(DotVname ast, Object o) {
-        return null;
-    }
-
-    @Override
-    public Object visitSimpleVname(SimpleVname ast, Object o) {
-        return null;
-    }
-
-    @Override
-    public Object visitSubscriptVname(SubscriptVname ast, Object o) {
-        return null;
-    }
-
-    @Override
-    public Object visitProgram(Program ast, Object o) {
-        return null;
+    public Object visitProgram(Program ast, Object obj) {
+        return (createUnary("Program", ast.C));
     }
     // </editor-fold>
 
@@ -420,62 +422,77 @@ public class TreeVisitor implements Visitor {
      * @return The tree node.
      */
     public DefaultMutableTreeNode createNullary(String caption) {
-        return new DefaultMutableTreeNode(caption);
+        DefaultMutableTreeNode t = new DefaultMutableTreeNode(caption);
+
+        return (t);
     }
 
     /**
      * Creates an unary tree node.
      *
      * @param caption The tree's caption (text to be shown when the tree is drawn).
-     * @param child1  The first child node.
+     * @param child1  The first children node.
      * @return The tree node.
      */
     public DefaultMutableTreeNode createUnary(String caption, AST child1) {
-        if (child1 == null) {
-            throw new IllegalArgumentException("El nodo hijo en createUnary no puede ser nulo.");
-        }
         DefaultMutableTreeNode t = new DefaultMutableTreeNode(caption);
         t.add((DefaultMutableTreeNode) child1.visit(this, null));
-        return t;
+
+        return (t);
     }
 
     /**
      * Creates a binary tree node.
      *
      * @param caption The tree's caption (text to be shown when the tree is drawn).
-     * @param child1  The first child node.
-     * @param child2  The second child node.
+     * @param child1  The first children node.
+     * @param child2  The second children node.
      * @return The tree node.
      */
     public DefaultMutableTreeNode createBinary(String caption, AST child1, AST child2) {
-        if (child1 == null || child2 == null) {
-            throw new IllegalArgumentException("Los nodos hijos en createBinary no pueden ser nulos.");
-        }
         DefaultMutableTreeNode t = new DefaultMutableTreeNode(caption);
         t.add((DefaultMutableTreeNode) child1.visit(this, null));
         t.add((DefaultMutableTreeNode) child2.visit(this, null));
-        return t;
+
+        return (t);
     }
 
     /**
      * Creates a ternary tree node.
      *
      * @param caption The tree's caption (text to be shown when the tree is drawn).
-     * @param child1  The first child node.
-     * @param child2  The second child node.
-     * @param child3  The third child node.
+     * @param child1  The first children node.
+     * @param child2  The second children node.
+     * @param child3  The third children node.
      * @return The tree node.
      */
     public DefaultMutableTreeNode createTernary(String caption, AST child1, AST child2, AST child3) {
-        if (child1 == null || child2 == null || child3 == null) {
-            throw new IllegalArgumentException("Los nodos hijos en createTernary no pueden ser nulos.");
-        }
         DefaultMutableTreeNode t = new DefaultMutableTreeNode(caption);
         t.add((DefaultMutableTreeNode) child1.visit(this, null));
         t.add((DefaultMutableTreeNode) child2.visit(this, null));
         t.add((DefaultMutableTreeNode) child3.visit(this, null));
-        return t;
+
+        return (t);
     }
 
+    /**
+     * Creates a quaternary tree node.
+     *
+     * @param caption The tree's caption (text to be shown when the tree is drawn).
+     * @param child1  The first children node.
+     * @param child2  The second children node.
+     * @param child3  The third children node.
+     * @param child4  The fourth children node.
+     * @return The tree node.
+     */
+    public DefaultMutableTreeNode createQuaternary(String caption, AST child1, AST child2, AST child3, AST child4) {
+        DefaultMutableTreeNode t = new DefaultMutableTreeNode(caption);
+        t.add((DefaultMutableTreeNode) child1.visit(this, null));
+        t.add((DefaultMutableTreeNode) child2.visit(this, null));
+        t.add((DefaultMutableTreeNode) child3.visit(this, null));
+        t.add((DefaultMutableTreeNode) child4.visit(this, null));
+
+        return (t);
+    }
     // </editor-fold>
 }
