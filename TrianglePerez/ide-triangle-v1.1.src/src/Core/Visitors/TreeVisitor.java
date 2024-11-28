@@ -59,8 +59,57 @@ public class TreeVisitor implements Visitor {
 
     @Override
     public Object visitForCommand(ForCommand ast, Object o) {
-        return null;
+        DefaultMutableTreeNode forNode = new DefaultMutableTreeNode("For Command");
+
+        // Visit and add variable name
+        DefaultMutableTreeNode varNode = (DefaultMutableTreeNode) ast.V.visit(this, null);
+        if (varNode != null) {
+            forNode.add(varNode);
+        }
+
+        // Visit and add start expression
+        DefaultMutableTreeNode startExprNode = (DefaultMutableTreeNode) ast.E1.visit(this, null);
+        if (startExprNode != null) {
+            DefaultMutableTreeNode startLabelNode = new DefaultMutableTreeNode("Start: ");
+            startLabelNode.add(startExprNode);
+            forNode.add(startLabelNode);
+        }
+
+        // Visit and add end expression
+        DefaultMutableTreeNode endExprNode = (DefaultMutableTreeNode) ast.E2.visit(this, null);
+        if (endExprNode != null) {
+            DefaultMutableTreeNode endLabelNode = new DefaultMutableTreeNode("End: ");
+            endLabelNode.add(endExprNode);
+            forNode.add(endLabelNode);
+        }
+
+        // Check if the step expression is not null and visit if not
+        if (ast.E3 != null) {
+            DefaultMutableTreeNode stepExprNode = (DefaultMutableTreeNode) ast.E3.visit(this, null);
+            if (stepExprNode != null) {
+                DefaultMutableTreeNode stepLabelNode = new DefaultMutableTreeNode("Step: ");
+                stepLabelNode.add(stepExprNode);
+                forNode.add(stepLabelNode);
+            }
+        } else {
+            // If E3 is null, create a default step of +1
+            DefaultMutableTreeNode stepLabelNode = new DefaultMutableTreeNode("Step: default +1");
+            forNode.add(stepLabelNode);
+        }
+
+        // Visit and add the body command
+        DefaultMutableTreeNode bodyNode = (DefaultMutableTreeNode) ast.C.visit(this, null);
+        if (bodyNode != null) {
+            DefaultMutableTreeNode bodyLabelNode = new DefaultMutableTreeNode("Do: ");
+            bodyLabelNode.add(bodyNode);
+            forNode.add(bodyLabelNode);
+        }
+
+        return forNode;
     }
+
+
+
     // </editor-fold>
 
     public Object visitRepeatCommand(RepeatCommand ast, Object o) {
