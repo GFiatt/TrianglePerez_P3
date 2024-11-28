@@ -186,12 +186,6 @@ public class Interpreter {
         data[ST - 1] = toInt(equal(size, ST - 1, ST - 1 + size));
         break;
       // Otros casos...
-      case Machine.putintDisplacement:
-        int valueToPrint = data[ST - 1];
-        System.out.println("Calling putint with value: " + data[ST-1]);
-        System.out.println(data[ST-1]); // Imprime el entero en la parte superior de la pila
-        ST--; // Reduce el stack pointer después de imprimir
-        break;
     }
   }
 
