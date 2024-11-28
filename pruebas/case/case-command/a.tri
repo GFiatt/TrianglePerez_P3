@@ -1,10 +1,12 @@
-let
-  var x: Integer
-in
-  case x of
-    1 : x := x + 1;
-    2 : x := x + 2;
-    'a' : x := x + 3;
-  else:
-    x := 0
-  end
+let
+  var x: Integer
+in
+  begin  
+    x := 0;
+    case x of
+      1 : x := x + 1;
+      2 : x := x + 2;
+    else:
+      begin x := 0; putint(x); end
+    end
+  end

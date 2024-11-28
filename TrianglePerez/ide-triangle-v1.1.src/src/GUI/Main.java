@@ -38,6 +38,10 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import Core.Visitors.TreeVisitor;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.io.PrintStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+
 
 /**
  * The Main class. Contains the main form.
@@ -46,14 +50,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class Main extends javax.swing.JFrame {
 
+
+
+
     // <editor-fold defaultstate="collapsed" desc=" Methods ">
     
     /**
      * Creates new form Main.
      */
-    public Main() {        
+    public Main() {
+
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());            
+            System.setOut(new PrintStream(new FileOutputStream("output.txt")));
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) { }
         
         initComponents();
