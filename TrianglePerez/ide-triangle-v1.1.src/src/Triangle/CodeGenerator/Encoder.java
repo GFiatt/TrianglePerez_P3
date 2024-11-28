@@ -33,7 +33,7 @@ public final class Encoder implements Visitor {
 
 
   public Encoder() {
-    nextInstrAddr = Machine.CB; // Inicializa con la dirección de inicio del segmento de código.
+    nextInstrAddr = Machine.CB;
   }
 
   // Método para obtener la dirección de la próxima instrucción.
@@ -42,10 +42,9 @@ public final class Encoder implements Visitor {
   }
 
   private void incrementNextInstrAddr() {
-    if (nextInstrAddr < Machine.PB) { // Asegúrate de que no exceda el límite del segmento de código.
+    if (nextInstrAddr < Machine.PB) {
       nextInstrAddr++;
     } else {
-      // Puedes manejar el error o la excepción aquí si excede el tamaño del código permitido.
       throw new RuntimeException("Code segment overflow");
     }
   }
@@ -69,42 +68,37 @@ public final class Encoder implements Visitor {
 
   public Object visitCaseCommand(CaseCommand ast, Object o) {
     Frame frame = (Frame) o;
-    int exitLabel = nextInstrAddr(); // Reservar etiqueta para el final de la estructura case.
+    int exitLabel = nextInstrAddr();
 
-    // Generar el salto inicial al primer caso
     int jumpToFirstCase = nextInstrAddr();
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
 
     for (Map.Entry<Object, Command> entry : ast.MAP.entrySet()) {
-      int caseLabel = nextInstrAddr(); // Etiqueta para este caso
+      int caseLabel = nextInstrAddr();
       patch(jumpToFirstCase, caseLabel);
-      ast.V.visit(this, frame); // Cargar V para comparación
+      ast.V.visit(this, frame);
 
-      // Cargar constante del caso para comparación
       if (entry.getKey() instanceof IntegerLiteral) {
         emit(Machine.LOADLop, 0, 0, Integer.parseInt(((IntegerLiteral) entry.getKey()).spelling));
       } else if (entry.getKey() instanceof CharacterLiteral) {
         emit(Machine.LOADLop, 0, 0, ((CharacterLiteral) entry.getKey()).spelling.charAt(0));
       }
 
-      // Comparar y saltar si es verdadero
       emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.eqDisplacement);
-      emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, nextInstrAddr() + 3); // +3 para saltar sobre el próximo JUMP
-      jumpToFirstCase = nextInstrAddr(); // Preparar salto al siguiente caso
+      emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, nextInstrAddr() + 3);
+      jumpToFirstCase = nextInstrAddr();
       emit(Machine.JUMPop, 0, Machine.CBr, 0);
 
-      // Cuerpo del caso
       entry.getValue().visit(this, frame);
-      emit(Machine.JUMPop, 0, Machine.CBr, exitLabel); // Salto al final después del caso
+      emit(Machine.JUMPop, 0, Machine.CBr, exitLabel);
     }
 
-    // Bloque else
     patch(jumpToFirstCase, nextInstrAddr());
     if (ast.C != null) {
       ast.C.visit(this, frame);
     }
 
-    patch(exitLabel, nextInstrAddr()); // Fijar la etiqueta de salida
+    patch(exitLabel, nextInstrAddr());
     return null;
   }
 
@@ -162,31 +156,25 @@ public final class Encoder implements Visitor {
   public Object visitForCommand(ForCommand ast, Object o) {
     Frame frame = (Frame)o;
 
-    // Inicialización del índice
-    ast.E1.visit(this, frame); // Evaluar expresión inicial (a + 2)
-    this.encodeStore(ast.V, new Frame(frame, 1), 1); // Guardar en 'j'
+    ast.E1.visit(this, frame);
+    this.encodeStore(ast.V, new Frame(frame, 1), 1);
 
-    // Dirección del ciclo
     int jumpAddr = this.nextInstrAddr;
-    this.emit(12, 0, 0, 0); // Salto condicional inicial
+    this.emit(12, 0, 0, 0);
 
-    // Etiqueta de inicio del ciclo
     int loopAddr = this.nextInstrAddr;
 
-    // Cuerpo del ciclo
-    ast.C.visit(this, frame); // Visitar el comando del cuerpo
+    ast.C.visit(this, frame);
 
-    // Incremento o Decremento
-    this.encodeFetch(ast.V, frame, 1); // Obtener valor actual de 'j'
-    this.emit(6, 4, 2, 5); // Sumar o restar el paso
-    this.encodeStore(ast.V, new Frame(frame, 1), 1); // Guardar el nuevo valor de 'j'
+    this.encodeFetch(ast.V, frame, 1);
+    this.emit(6, 4, 2, 5);
+    this.encodeStore(ast.V, new Frame(frame, 1), 1);
 
-    // Condición de Continuación
-    this.patch(jumpAddr, this.nextInstrAddr); // Actualizar la dirección del salto
-    this.encodeFetch(ast.V, frame, 1); // Obtener 'j'
-    ast.E2.visit(this, frame); // Evaluar expresión final (a - 2)
-    this.emit(6, 4, 2, 14); // Comparar 'j' con el límite
-    this.emit(14, 1, 0, loopAddr); // Saltar si es verdadero
+    this.patch(jumpAddr, this.nextInstrAddr);
+    this.encodeFetch(ast.V, frame, 1);
+    ast.E2.visit(this, frame);
+    this.emit(6, 4, 2, 14);
+    this.emit(14, 1, 0, loopAddr);
 
     return null;
   }
@@ -221,10 +209,6 @@ public final class Encoder implements Visitor {
 
     return null;
   }
-
-
-
-
 
 
   // Expressions
@@ -824,7 +808,6 @@ public final class Encoder implements Visitor {
       IntegerLiteral IL = ((IntegerExpression) ast.E).IL;
       ast.offset = ast.offset + Integer.parseInt(IL.spelling) * elemSize;
     } else {
-      // v-name is indexed by a proper expression, not a literal
       if (ast.indexed)
         frame.size = frame.size + Machine.integerSize;
       indexSize = ((Integer) ast.E.visit(this, frame)).intValue();
@@ -855,9 +838,7 @@ public final class Encoder implements Visitor {
 
   private ErrorReporter reporter;
 
-  // Generates code to run a program.
-  // showingTable is true iff entity description details
-  // are to be displayed.
+
   public final void encodeRun (Program theAST, boolean showingTable) {
     tableDetailsReqd = showingTable;
     //startCodeGeneration();
@@ -865,7 +846,6 @@ public final class Encoder implements Visitor {
     emit(Machine.HALTop, 0, 0, 0);
   }
 
-  // Decides run-time representation of a standard constant.
   private final void elaborateStdConst (Declaration constDeclaration,
                                         int value) {
 
@@ -877,7 +857,6 @@ public final class Encoder implements Visitor {
     }
   }
 
-  // Decides run-time representation of a standard routine.
   private final void elaborateStdPrimRoutine (Declaration routineDeclaration,
                                               int routineOffset) {
     routineDeclaration.entity = new PrimitiveRoutine (Machine.closureSize, routineOffset);
@@ -927,8 +906,6 @@ public final class Encoder implements Visitor {
     elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
   }
 
-  // Saves the object program in the named file.
-
   public void saveObjectProgram(String objectName) {
     FileOutputStream objectFile = null;
     DataOutputStream objectStream = null;
@@ -957,13 +934,9 @@ public final class Encoder implements Visitor {
 
   // OBJECT CODE
 
-  // Implementation notes:
-  // Object code is generated directly into the TAM Code Store, starting at CB.
-  // The address of the next instruction is held in nextInstrAddr.
 
   private int nextInstrAddr;
 
-  // Appends an instruction, with the given fields, to the object code.
   private void emit (int op, int n, int r, int d) {
     Instruction nextInstr = new Instruction();
     if (n > 255) {
@@ -982,7 +955,6 @@ public final class Encoder implements Visitor {
     }
   }
 
-  // Patches the d-field of the instruction at address addr.
   private void patch (int addr, int d) {
     Machine.code[addr].d = d;
   }
@@ -990,15 +962,11 @@ public final class Encoder implements Visitor {
   // DATA REPRESENTATION
 
   public int characterValuation (String spelling) {
-    // Returns the machine representation of the given character literal.
     return spelling.charAt(1);
-    // since the character literal is of the form 'x'}
   }
 
   // REGISTERS
 
-  // Returns the register number appropriate for object code at currentLevel
-  // to address a data object at objectLevel.
   private int displayRegister (int currentLevel, int objectLevel) {
     if (objectLevel == 0)
       return Machine.SBr;
@@ -1010,17 +978,9 @@ public final class Encoder implements Visitor {
     }
   }
 
-  // Generates code to fetch the value of a named constant or variable
-  // and push it on to the stack.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the constant or variable is fetched at run-time.
-  // valSize is the size of the constant or variable's value.
-
   private void encodeStore(Vname V, Frame frame, int valSize) {
 
     RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
     if (valSize > 255) {
       reporter.reportRestriction("can't store values larger than 255 words");
       valSize = 255; // to allow code generation to continue
@@ -1050,23 +1010,14 @@ public final class Encoder implements Visitor {
     }
   }
 
-  // Generates code to fetch the value of a named constant or variable
-  // and push it on to the stack.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the constant or variable is fetched at run-time.
-  // valSize is the size of the constant or variable's value.
-
   private void encodeFetch(Vname V, Frame frame, int valSize) {
 
     RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
     if (valSize > 255) {
       reporter.reportRestriction("can't load values larger than 255 words");
-      valSize = 255; // to allow code generation to continue
+      valSize = 255;
     }
     if (baseObject instanceof KnownValue) {
-      // presumably offset = 0 and indexed = false
       int value = ((KnownValue) baseObject).value;
       emit(Machine.LOADLop, 0, 0, value);
     } else if ((baseObject instanceof UnknownValue) ||
@@ -1096,16 +1047,9 @@ public final class Encoder implements Visitor {
     }
   }
 
-  // Generates code to compute and push the address of a named variable.
-  // vname is the program phrase that names this variable.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the variable is addressed at run-time.
-
   private void encodeFetchAddress (Vname V, Frame frame) {
 
     RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
     if (baseObject instanceof KnownAddress) {
       ObjectAddress address = ((KnownAddress) baseObject).address;
       emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
