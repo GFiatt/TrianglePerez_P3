@@ -2,11 +2,16 @@ let
   var x: Integer
 in
   begin  
-    x := 0;
+    x := 3;
+    putint(x);
     case x of
-      1 : x := x + 1;
-      2 : x := x + 2;
+      1 : x := 999;
+      2 : x := 888;
     else:
-      begin x := 0; putint(x); end
+      begin putint(x); x := 33; putint(x); end
+    end;
+    begin
+    putint(x); 
     end
   end
+

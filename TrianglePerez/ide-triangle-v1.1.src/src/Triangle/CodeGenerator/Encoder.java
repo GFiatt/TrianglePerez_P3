@@ -27,13 +27,28 @@ import Triangle.AbstractSyntaxTrees.*;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 
+import java.util.Map;
+
 public final class Encoder implements Visitor {
 
 
+  public Encoder() {
+    nextInstrAddr = Machine.CB; // Inicializa con la dirección de inicio del segmento de código.
+  }
 
+  // Método para obtener la dirección de la próxima instrucción.
+  private int nextInstrAddr() {
+    return nextInstrAddr;
+  }
 
-
-
+  private void incrementNextInstrAddr() {
+    if (nextInstrAddr < Machine.PB) { // Asegúrate de que no exceda el límite del segmento de código.
+      nextInstrAddr++;
+    } else {
+      // Puedes manejar el error o la excepción aquí si excede el tamaño del código permitido.
+      throw new RuntimeException("Code segment overflow");
+    }
+  }
 
 
   // Commands
@@ -54,42 +69,42 @@ public final class Encoder implements Visitor {
 
   public Object visitCaseCommand(CaseCommand ast, Object o) {
     Frame frame = (Frame) o;
-    int endLabel = nextInstrAddr; // Etiqueta para el final del case
+    int exitLabel = nextInstrAddr(); // Reservar etiqueta para el final de la estructura case.
+
+    // Generar el salto inicial al primer caso
+    int jumpToFirstCase = nextInstrAddr();
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
 
-    // Generar instrucciones para cada caso
-    for (Object key : ast.MAP.keySet()) {
-      int caseLabel = nextInstrAddr; // Etiqueta para cada caso
-      ast.V.visit(this, frame); // Evaluar el Vname del case
+    for (Map.Entry<Object, Command> entry : ast.MAP.entrySet()) {
+      int caseLabel = nextInstrAddr(); // Etiqueta para este caso
+      patch(jumpToFirstCase, caseLabel);
+      ast.V.visit(this, frame); // Cargar V para comparación
 
-      // Verificar si la clave es IntegerLiteral o CharacterLiteral
-      if (key instanceof IntegerLiteral) {
-        emit(Machine.LOADLop, 0, 0, Integer.parseInt(((IntegerLiteral) key).spelling));
-      } else if (key instanceof CharacterLiteral) {
-        emit(Machine.LOADLop, 0, 0, ((CharacterLiteral) key).spelling.charAt(1));
-      } else {
-        throw new IllegalArgumentException("Unsupported literal type in case command");
+      // Cargar constante del caso para comparación
+      if (entry.getKey() instanceof IntegerLiteral) {
+        emit(Machine.LOADLop, 0, 0, Integer.parseInt(((IntegerLiteral) entry.getKey()).spelling));
+      } else if (entry.getKey() instanceof CharacterLiteral) {
+        emit(Machine.LOADLop, 0, 0, ((CharacterLiteral) entry.getKey()).spelling.charAt(0));
       }
 
-      // Comparar la expresión con la clave
+      // Comparar y saltar si es verdadero
       emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.eqDisplacement);
-      emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, caseLabel);
+      emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, nextInstrAddr() + 3); // +3 para saltar sobre el próximo JUMP
+      jumpToFirstCase = nextInstrAddr(); // Preparar salto al siguiente caso
+      emit(Machine.JUMPop, 0, Machine.CBr, 0);
 
-      // Generar el comando del caso
-      ast.MAP.get(key).visit(this, frame);
-
-      emit(Machine.JUMPop, 0, Machine.CBr, endLabel); // Salto al final del case
+      // Cuerpo del caso
+      entry.getValue().visit(this, frame);
+      emit(Machine.JUMPop, 0, Machine.CBr, exitLabel); // Salto al final después del caso
     }
 
-    // Generar el comando por defecto (else), si existe
+    // Bloque else
+    patch(jumpToFirstCase, nextInstrAddr());
     if (ast.C != null) {
-      int elseLabel = nextInstrAddr;
       ast.C.visit(this, frame);
-      emit(Machine.JUMPop, 0, Machine.CBr, endLabel);
     }
 
-    // Actualizar las etiquetas para el final del case
-    patch(endLabel, nextInstrAddr);
+    patch(exitLabel, nextInstrAddr()); // Fijar la etiqueta de salida
     return null;
   }
 
@@ -187,12 +202,11 @@ public final class Encoder implements Visitor {
 
     ast.E.visit(this, frame);
 
-    emit(Machine.LOADLop, 0, 0, 0);
-
     emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
 
     return null;
   }
+
 
   @Override
   public Object visitDoCommand(DoCommand ast, Object o) {
@@ -310,18 +324,16 @@ public final class Encoder implements Visitor {
   public Object visitCaseExpression(CaseExpression ast, Object o) {
     Frame frame = (Frame) o;
 
-    // Dirección de inicio del resultado del case-expression
-    int resultAddr = nextInstrAddr;
-    emit(Machine.PUSHop, 0, 0, 1); // Reservar espacio para el resultado
+    emit(Machine.PUSHop, 0, 0, 1);
 
-    // Generar código para cada caso en el map
+    ast.V.visit(this, frame);
+
+    int endLabel = -1;
+    int defaultLabel = nextInstrAddr;
+
     for (Object key : ast.MAP.keySet()) {
-      int caseLabel = nextInstrAddr; // Etiqueta para el caso actual
+      emit(Machine.LOADop, 1, Machine.STr, -1);
 
-      // Evaluar la expresión del case
-      ast.V.visit(this, frame);
-
-      // Comparar con la clave
       if (key instanceof IntegerLiteral) {
         emit(Machine.LOADLop, 0, 0, Integer.parseInt(((IntegerLiteral) key).spelling));
       } else if (key instanceof CharacterLiteral) {
@@ -331,21 +343,33 @@ public final class Encoder implements Visitor {
       }
 
       emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.eqDisplacement);
+
+      int caseLabel = nextInstrAddr;
       emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, caseLabel);
 
-      // Generar la expresión asociada al caso
       ast.MAP.get(key).visit(this, frame);
-      emit(Machine.STOREop, 1, Machine.STr, -1); // Guardar el resultado
+      emit(Machine.STOREop, 1, Machine.STr, -2);
 
-      // Saltar al final
-      emit(Machine.JUMPop, 0, Machine.CBr, resultAddr);
+      if (endLabel == -1) {
+        endLabel = nextInstrAddr;
+      }
+      emit(Machine.JUMPop, 0, Machine.CBr, endLabel);
+
+      patch(caseLabel, nextInstrAddr);
     }
 
-    // Parchear las etiquetas para el final
-    patch(resultAddr, nextInstrAddr);
+    patch(defaultLabel, nextInstrAddr);
+    emit(Machine.PUSHop, 0, 0, 0);
+    emit(Machine.STOREop, 1, Machine.STr, -2);
 
-    return 1; // Tamaño del resultado
+    if (endLabel != -1) {
+      patch(endLabel, nextInstrAddr);
+    }
+
+    return 1;
   }
+
+
 
 
 
