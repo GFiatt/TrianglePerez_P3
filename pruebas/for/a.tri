@@ -1,17 +1,17 @@
-let 
+let
   var i: Integer;
   var a: Integer;
   var j: Integer;
   var x: Integer
 in
   begin
-    a := 0;  
-    x := 0; 
-    putint(x); 
+    a := 10; 
+    x := 0;  
     for j := a + 2 to a - 2 by -1 do
       begin
-        x := x + j;
-        putint(x);  
+        x := x + j;   
+        putint(x);    
       end
   end
+
 

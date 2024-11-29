@@ -1,6 +1,13 @@
 let
   var i: Integer
 in
-  do
-    i := i + 1
-  while i < 10
+  begin
+    i := 0; 
+    do
+      begin
+        i := i + 1;       
+        putint(i);        
+      end
+    while i < 10
+  end
+

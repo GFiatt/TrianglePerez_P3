@@ -145,51 +145,36 @@ public final class Encoder implements Visitor {
   }
 
   public Object visitForCommand(ForCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpAddr, loopAddr;
+    Frame frame = (Frame)o;
 
-    // Evaluar el valor inicial (E1) y almacenarlo en la variable del ciclo (V)
-    ast.E1.visit(this, frame);
-    encodeStore(ast.V, new Frame(frame, 1), 1);
+    // Inicialización del índice
+    ast.E1.visit(this, frame); // Evaluar expresión inicial (a + 2)
+    this.encodeStore(ast.V, new Frame(frame, 1), 1); // Guardar en 'j'
 
-    // Generar salto condicional al final del ciclo
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
+    // Dirección del ciclo
+    int jumpAddr = this.nextInstrAddr;
+    this.emit(12, 0, 0, 0); // Salto condicional inicial
 
-    // Dirección del cuerpo del ciclo
-    loopAddr = nextInstrAddr;
+    // Etiqueta de inicio del ciclo
+    int loopAddr = this.nextInstrAddr;
 
-    // Visitar el cuerpo del ciclo
-    ast.C.visit(this, frame);
+    // Cuerpo del ciclo
+    ast.C.visit(this, frame); // Visitar el comando del cuerpo
 
-    // Incrementar o decrementar el valor del contador dependiendo del "by"
-    encodeFetch(ast.V, frame, 1);
-    if (ast.E3 != null) { // E3 indica "by"
-      ast.E3.visit(this, frame);
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-    } else {
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.succDisplacement); // Incremento por defecto
-    }
-    encodeStore(ast.V, new Frame(frame, 1), 1);
+    // Incremento o Decremento
+    this.encodeFetch(ast.V, frame, 1); // Obtener valor actual de 'j'
+    this.emit(6, 4, 2, 5); // Sumar o restar el paso
+    this.encodeStore(ast.V, new Frame(frame, 1), 1); // Guardar el nuevo valor de 'j'
 
-    // Parchear el salto inicial
-    patch(jumpAddr, nextInstrAddr);
-
-    // Evaluar la condición de fin del ciclo
-    encodeFetch(ast.V, frame, 1);
-    ast.E2.visit(this, frame);
-    if (ast.E3 != null && ast.E3.isNegative()) {
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.geDisplacement); // Decreciente
-    } else {
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.leDisplacement); // Creciente
-    }
-
-    // Salto condicional para mantener el ciclo
-    emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
+    // Condición de Continuación
+    this.patch(jumpAddr, this.nextInstrAddr); // Actualizar la dirección del salto
+    this.encodeFetch(ast.V, frame, 1); // Obtener 'j'
+    ast.E2.visit(this, frame); // Evaluar expresión final (a - 2)
+    this.emit(6, 4, 2, 14); // Comparar 'j' con el límite
+    this.emit(14, 1, 0, loopAddr); // Saltar si es verdadero
 
     return null;
   }
-
 
 
   @Override
