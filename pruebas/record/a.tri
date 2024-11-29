@@ -1,14 +1,12 @@
 let
-  type Vector ~ record
-    x: integer;
-    y: integer;
-    norm: func() : integer ~ x * x + y * y;
-  end;
-  var v: Vector;
-  var result: integer
+  var i: Integer
 in
   begin
-    v.x := 3;
-    v.y := 4;
-    result := v.norm()
+    i := 0;
+    putint(i);
+    repeat
+      i := i + 1;
+      putint(i)
+    until i > 10
   end
+

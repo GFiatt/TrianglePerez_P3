@@ -369,14 +369,6 @@ public final class Encoder implements Visitor {
     return 1;
   }
 
-
-
-
-
-
-
-
-
   // Declarations
   public Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast,
                                                Object o){

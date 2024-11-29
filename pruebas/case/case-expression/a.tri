@@ -2,10 +2,14 @@ let
   var x: Integer;
   var y: Integer
 in
-  y := case x of
-    1 : x + 1;
-    2 : x * 2;
-    3 : x - 3
+  begin
+    x := 1;
+    putint(x);
+    y := case x of
+      1 : x + 5;
+      2 : x * 2;
+      3 : x - 3
+    end;
+    putint(y);
   end
-
 

@@ -7,11 +7,12 @@ in
   begin
     a := 10; 
     x := 0;  
-    for j := a + 2 to a - 2 by -1 do
+    for j := a - 10 to a + 2 by 1 do
       begin
         x := x + j;   
         putint(x);    
       end
   end
+
 
 
