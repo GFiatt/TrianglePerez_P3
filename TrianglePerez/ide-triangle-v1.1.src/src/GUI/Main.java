@@ -61,7 +61,6 @@ public class Main extends javax.swing.JFrame {
     public Main() {
 
         try {
-            System.setOut(new PrintStream(new FileOutputStream("output.txt")));
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) { }
         

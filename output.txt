@@ -32,3 +32,8 @@ Compilation was successful.
 25:  POP   (0)   1
 26:  HALT  
 ********** TAM Interpreter (Java Version 2.1) **********
+
+Program has halted normally.
+********** TAM Interpreter (Java Version 2.1) **********
+
+Program has halted normally.
