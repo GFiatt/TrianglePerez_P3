@@ -4,4 +4,14 @@ let
   var j: Integer;
   var x: Integer
 in
-  for j := a+2 to a-2 by -1 do x := x + j;
+  begin
+    a := 0;  
+    x := 0; 
+    putint(x); 
+    for j := a + 2 to a - 2 by -1 do
+      begin
+        x := x + j;
+        putint(x);  
+      end
+  end
+

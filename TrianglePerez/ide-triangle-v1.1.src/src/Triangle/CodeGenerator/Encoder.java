@@ -148,22 +148,49 @@ public final class Encoder implements Visitor {
     Frame frame = (Frame) o;
     int jumpAddr, loopAddr;
 
+    // Evaluar el valor inicial (E1) y almacenarlo en la variable del ciclo (V)
     ast.E1.visit(this, frame);
-    encodeStore(ast.V, new Frame (frame, 1), 1);
+    encodeStore(ast.V, new Frame(frame, 1), 1);
+
+    // Generar salto condicional al final del ciclo
     jumpAddr = nextInstrAddr;
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
+
+    // Dirección del cuerpo del ciclo
     loopAddr = nextInstrAddr;
+
+    // Visitar el cuerpo del ciclo
     ast.C.visit(this, frame);
+
+    // Incrementar o decrementar el valor del contador dependiendo del "by"
     encodeFetch(ast.V, frame, 1);
-    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.succDisplacement);
-    encodeStore(ast.V, new Frame (frame, 1), 1);
+    if (ast.E3 != null) { // E3 indica "by"
+      ast.E3.visit(this, frame);
+      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+    } else {
+      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.succDisplacement); // Incremento por defecto
+    }
+    encodeStore(ast.V, new Frame(frame, 1), 1);
+
+    // Parchear el salto inicial
     patch(jumpAddr, nextInstrAddr);
+
+    // Evaluar la condición de fin del ciclo
     encodeFetch(ast.V, frame, 1);
     ast.E2.visit(this, frame);
-    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.leDisplacement);
+    if (ast.E3 != null && ast.E3.isNegative()) {
+      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.geDisplacement); // Decreciente
+    } else {
+      emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.leDisplacement); // Creciente
+    }
+
+    // Salto condicional para mantener el ciclo
     emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
+
     return null;
   }
+
+
 
   @Override
   public Object visitRepeatCommand(RepeatCommand ast, Object o) {
